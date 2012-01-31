@@ -1,0 +1,17 @@
+Instructions for compiling Cli Calc from source code
+
+Requirements (tested on):
+- g++ 4.4.3 or newer
+- make 3.8 or newer
+
+For Debian:
+- sudo apt-get install build-essential make
+
+Steps:
+- make
+- make install
+(might require administrator priveleges)
+
+Unistall:
+- make uninstall
+(might require administrator priveleges)

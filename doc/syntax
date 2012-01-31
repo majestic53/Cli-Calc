@@ -1,0 +1,69 @@
+stmt → <expr>
+	| assign <ident> <expr>
+
+expr → <e1> <e0p>
+
+e0p → & <e1> <e0p>
+	| | <e1> <e0p>
+	| ^ <e1> <e0p>
+	| ɛ
+
+e1 → <e2> <e1p>
+
+e1p → << <e2> <e1p>
+	| >> <e2> <e1p>
+	| ɛ
+
+e2 → <e3> <e2p>
+
+e2p → - <e3> <e2p>
+	| ɛ
+
+e3 → <e4> <e3p> 
+
+e3p → + <e4> <e3p> 
+	| ɛ 
+
+e4 → <e5> <e4p> 
+
+e4p → / <e5> <e4p> 
+	| % <e5> <e4p> 
+	| ɛ
+
+e5 → <e6> <e5p>
+
+e5p → * <e6> <e5p>
+	| ɛ
+
+e6 → <e7> <e6p>
+
+e6p → ^ <e7> <e6p>
+	| ɛ
+
+e7 → ( <expr> )
+	| ~ <expr>
+	| <ident>
+	| e
+	| pi
+	| rand
+	| abs <expr>
+	| acos <expr>
+	| asin <expr>
+	| atan <expr>
+	| ceiling <expr>
+	| cos <expr>
+	| cosh <expr>
+	| fact <expr>
+	| fib <expr>
+	| float <expr>
+	| floor <expr>
+	| int <expr>
+	| ln <expr>
+	| log10 <expr>
+	| round <expr>
+	| sin <expr>
+	| sinh <expr>
+	| sqr <expr>
+	| sqrt <expr>
+	| tan <expr>
+	| tanh <expr>

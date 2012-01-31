@@ -1,0 +1,57 @@
+Cli Calc is a small cli calculator that supports variables and a variety of functions 
+
+Included features:
+- Nested expression support
+- Global variable support
+- Large variety of functions
+
+Using Cli Calc
+-------------
+
+In terminal type 'cli-calc' followed by "--version" or "--help" to display the version and help
+information. 
+
+Expressions entered as arguments will be evaluated left-to-right. 
+
+If no expressions are given,
+cli_calc will enter interactive mode. While in interactive mode, type 'help' for a list of
+supported functions. To exit interactive mode, enter 'exit' or Ctrl^D.
+
+Installation
+------------
+
+Instructions for compiling Cli Calc from source code
+
+Requirements (tested on):
+- g++ 4.4.3 or newer
+- make 3.8 or newer
+
+For Debian:
+- sudo apt-get install build-essential make
+
+Steps:
+- make
+- make install
+(might require administrator priveleges)
+
+Unistall:
+- make uninstall
+(might require administrator priveleges)
+
+Known Bugs
+----------
+
+License
+-------
+
+Copyright(C) 2012 David Jolly <majestic53@gmail.com>
+
+This program is free software: you can redistribute it and/or modify
+it under the terms of the GNU General Public License as published by
+the Free Software Foundation, either version 3 of the License, or
+(at your option) any later version.
+
+This program is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+GNU General Public License for more details.
