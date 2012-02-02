@@ -6,7 +6,7 @@ APP=cli-calc
 MAIN=calc
 SRC=src/
 INSTALL=/usr/bin
-DOC=/usr/share/doc/imagebd
+DOC=/usr/share/doc/cli-calc
 
 all: build calc
 
