@@ -1,5 +1,5 @@
 stmt → <expr>
-	| assign <ident> <expr>
+	| make <ident> <expr>
 
 expr → <e1> <e0p>
 

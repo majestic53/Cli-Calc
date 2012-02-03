@@ -1,9 +1,12 @@
 Cli Calc is a small cli calculator that supports variables and a variety of functions 
 
+Version:
+	- 0.1.1
+
 Included features:
-- Nested expression support
-- Global variable support
-- Large variety of functions
+	- Nested expression support
+	- Global variable support
+	- Large variety of functions
 
 Using Cli Calc
 -------------
@@ -23,20 +26,20 @@ Installation
 Instructions for compiling Cli Calc from source code
 
 Requirements (tested on):
-- g++ 4.4.3 or newer
-- make 3.8 or newer
+	- g++ 4.4.3 or newer
+	- make 3.8 or newer
 
 For Debian:
-- sudo apt-get install build-essential make
+	- sudo apt-get install build-essential make
 
 Steps:
-- make
-- make install
-(might require administrator priveleges)
+	- make
+	- make install
+	(might require administrator priveleges)
 
 Unistall:
-- make uninstall
-(might require administrator priveleges)
+	- make uninstall
+	(might require administrator priveleges)
 
 Known Bugs
 ----------
