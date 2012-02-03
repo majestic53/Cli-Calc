@@ -1,8 +1,8 @@
 /*
- * Calc -- a small CLI calculator
+ * Cli Calc -- a small CLI calculator
  * Copyright (C) 2012 David Jolly
  * ----------------------
- * This file is part of Calc
+ * This file is part of Cli Calc
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -56,6 +56,7 @@ const std::string calc::HELP_INFO_DATA[calc::HELP_INFO_DATA_SIZE] = {
 	"floor -- floor (maintains type)",
 	"long -- cast to integer",
 	"ln -- natural log (log-base-e)",
+	"log2 -- log-base-2",
 	"log10 -- log-base-10",
 	"make -- assign an id to an expression",
 	"rand -- normalized random numbers (0-1)",
@@ -78,7 +79,7 @@ const std::string calc::NOTIFICATION("Type 'help' or 'about' for more informatio
 /*
  * Version number
  */
-const std::string calc::VERSION("Cli-Calculator 0.1.0");
+const std::string calc::VERSION("Cli-Calculator 0.1.1");
 
 /*
  * Warranty statement
@@ -407,13 +408,20 @@ void calc::eval_function(syn_tree &tree, sym_table &state) {
 	// execute natural log function on input
 	} else if(text == lexer::FUNCTION_OPER_DATA[lexer::LN]) {
 		tree.set_type(token::FLOAT);
-		token::convert_to_string(log(token::convert_to<long>(child.get_text())), output);
+		token::convert_to_string(log(token::convert_to<double>(child.get_text())), output);
+		tree.set_text(output);
+
+
+	// execute log(base 2) function on input
+	} else if(text == lexer::FUNCTION_OPER_DATA[lexer::LOG2]) {
+		tree.set_type(token::FLOAT);
+		token::convert_to_string(log2(token::convert_to<double>(child.get_text())), output);
 		tree.set_text(output);
 
 	// execute log(base 10) function on input
 	} else if(text == lexer::FUNCTION_OPER_DATA[lexer::LOG10]) {
 		tree.set_type(token::FLOAT);
-		token::convert_to_string(log10(token::convert_to<long>(child.get_text())), output);
+		token::convert_to_string(log10(token::convert_to<double>(child.get_text())), output);
 		tree.set_text(output);
 
 	// execute round function on input

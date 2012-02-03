@@ -59,6 +59,7 @@ e7 → ( <expr> )
 	| floor <expr>
 	| int <expr>
 	| ln <expr>
+	| log2 <expr>
 	| log10 <expr>
 	| round <expr>
 	| sin <expr>

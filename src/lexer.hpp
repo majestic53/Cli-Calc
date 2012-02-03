@@ -124,7 +124,7 @@ public:
 	/*
 	 * Function keywords
 	 */
-	enum FUNCT_OPER { ABS, ACOS, ASIN, ATAN, CEILING, COS, COSH, FACT, FIB, FLOAT, FLOOR, INT, LN, LOG10, ROUND,
+	enum FUNCT_OPER { ABS, ACOS, ASIN, ATAN, CEILING, COS, COSH, FACT, FIB, FLOAT, FLOOR, INT, LN, LOG2, LOG10, ROUND,
 						SIN, SINH, SQR, SQRT, TAN, TANH };
 	static const std::string FUNCTION_OPER_DATA[];
 	static const std::set<std::string> FUNCTION;

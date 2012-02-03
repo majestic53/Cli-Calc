@@ -1,5 +1,8 @@
 Cli Calc (imagebd)
 Copyright(C) 2012 David Jolly <majestic53@gmail.com>
 
+Version 0.1.1
+	Added log2 (log-base-2) function
+
 Version 0.1
 	Initial release

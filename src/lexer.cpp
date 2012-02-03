@@ -41,9 +41,9 @@ const std::set<std::string> lexer::CONSTANT(lexer::CONSTANT_OPER_DATA, lexer::CO
  * Function keywords
  */
 
-const std::string lexer::FUNCTION_OPER_DATA[21] = { "abs", "acos", "asin", "atan", "ceiling", "cos", "cosh", "fact",
-		"fib", "float", "floor", "int", "ln", "log10", "round", "sin", "sinh", "sqr", "sqrt", "tan", "tanh" };
-const std::set<std::string> lexer::FUNCTION(lexer::FUNCTION_OPER_DATA, lexer::FUNCTION_OPER_DATA + 21);
+const std::string lexer::FUNCTION_OPER_DATA[22] = { "abs", "acos", "asin", "atan", "ceiling", "cos", "cosh", "fact",
+		"fib", "float", "floor", "int", "ln", "log2", "log10", "round", "sin", "sinh", "sqr", "sqrt", "tan", "tanh" };
+const std::set<std::string> lexer::FUNCTION(lexer::FUNCTION_OPER_DATA, lexer::FUNCTION_OPER_DATA + 22);
 
 /*
  * Logical operator keywords

@@ -1,8 +1,8 @@
 /*
- * Calc -- a small CLI calculator
+ * Cli Calc -- a small CLI calculator
  * Copyright (C) 2012 David Jolly
  * ----------------------
- * This file is part of Calc
+ * This file is part of Cli Calc
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -46,7 +46,7 @@ public:
 	 * Help information
 	 */
 	static const std::string HELP_INFO_DATA[];
-	static const unsigned int HELP_INFO_DATA_SIZE = 27;
+	static const unsigned int HELP_INFO_DATA_SIZE = 28;
 
 	/*
 	 * Help information notification
