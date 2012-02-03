@@ -1,8 +1,8 @@
 /*
- * inspiredLOGO -- a small LOGO interpreter
+ * Cli Calc -- a small CLI calculator
  * Copyright (C) 2012 David Jolly
  * ----------------------
- * This file is part of inspiredLOGO
+ * This file is part of Cli Calc
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
