@@ -22,7 +22,9 @@ install:
 	install -m 644 -t ${DOC} ChangeLog COPYING INSTALL README
 
 uninstall:
-	rm ${INSTALL}/bin/$(APP)
+	rm ${INSTALL}/$(APP)
+	rm ${DOC}/*
+	rmdir ${DOC}
 
 calc: build $(SRC)$(MAIN).cpp $(SRC)$(MAIN).hpp
 	$(CC) -std=c++0x -lm -o $(APP) $(SRC)$(MAIN).cpp $(SRC)exc_code.o $(SRC)lexer.o $(SRC)parser.o $(SRC)pb_buffer.o $(SRC)sym_table.o $(SRC)syn_tree.o $(SRC)token.o
