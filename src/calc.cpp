@@ -45,7 +45,7 @@ const std::string calc::HELP_INFO_DATA[calc::HELP_INFO_DATA_SIZE] = {
 	"abs -- absolute value",
 	"acos -- arc cosine",
 	"asin -- arc sine",
-	"atan -- arc tangant",
+	"atan -- arc tangent",
 	"ceiling -- ceiling (maintains type)",
 	"constants: e, pi",
 	"cos -- cosine",
