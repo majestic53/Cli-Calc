@@ -44,6 +44,11 @@ Unistall:
 Known Bugs
 ----------
 
+Arbitrarily large values (on 32-bit systems: > 2^32, and 64-bit systems: > 2^64), will fail, due
+to limitations of C fundimental types.
+	- At the moment, this problem is being addressed by using the GMP library. This will be
+	fixed next release (0.1.2).
+
 License
 -------
 
