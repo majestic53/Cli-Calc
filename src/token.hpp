@@ -21,6 +21,9 @@
 #ifndef TOKEN_HPP_
 #define TOKEN_HPP_
 
+#include <cstdint>
+#include <gmp.h>
+#include <gmpxx.h>
 #include <string>
 #include <vector>
 
@@ -44,6 +47,11 @@ public:
 	 */
 	enum TYPE { UNDEFINED, ASSIGNMENT, BEGIN, BINARY_OPER, CLOSE_PAREN, CONSTANT, END, EXPRESSION, FLOAT, FUNCTION, INTEGER,
 				LOGICAL_OPER, OPER, OPEN_PAREN, STRING, UNARY_OPER };
+
+	/*
+	 * Value precision
+	 */
+	static const unsigned int PRECISION = 20;
 
 	/*
 	 * Token constructor
@@ -99,13 +107,39 @@ public:
 	 * Converts a string to another type
 	 */
 	template<class T>
-	static T convert_to(std::string &str);
+	static T convert_to(std::string &str) {
+		T out;
+		std::stringstream stream(str);
+
+		// return the conversion of a string into an object of type T
+		stream >> out;
+		return out;
+	}
+
+	/*
+	 * Converts a string to a float
+	 */
+	static bool convert_to_float(mpf_t &out, std::string &str);
+
+	/*
+	 * Converts a string to an integer
+	 */
+	static bool convert_to_integer(mpz_t &out, std::string &str);
 
 	/*
 	 * Converts a type to a string
 	 */
 	template<class T>
-	static void convert_to_string(T val, std::string &out);
+	static void convert_to_string(T &val, std::string &out) {
+		std::stringstream stream;
+
+		// set precision
+		stream.precision(PRECISION);
+
+		// return the conversion of an object of type T into a string
+		stream << val;
+		out = stream.str();
+	}
 
 	/*
 	 * Returns a token child at a given index

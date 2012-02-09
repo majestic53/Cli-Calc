@@ -28,7 +28,7 @@ const std::string lexer::ASSIGN("make");
 /*
  * Binary operator keywords
  */
-const std::string lexer::BINARY_OPER_DATA[3] = { "&", "|", "^" };
+const std::string lexer::BINARY_OPER_DATA[3] = { "&", "|", "$" };
 const std::set<std::string> lexer::BINARY_OPER(lexer::BINARY_OPER_DATA, lexer::BINARY_OPER_DATA + 3);
 
 /*

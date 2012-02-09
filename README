@@ -1,9 +1,10 @@
 Cli Calc is a small cli calculator that supports variables and a variety of functions 
 
 Version:
-	- 0.1.1
+	- 0.1.2
 
 Included features:
+	- Arbitrarily large input
 	- Nested expression support
 	- Global variable support
 	- Large variety of functions
@@ -26,25 +27,26 @@ Installation
 Instructions for compiling Cli Calc from source code
 
 Requirements (tested on):
-	- g++ 4.4.3 or newer
-	- make 3.8 or newer
+- libgmp 3 or newer
+- g++ 4.4.3 or newer
+- make 3.8 or newer
 
 For Debian:
-	- sudo apt-get install build-essential make
+- sudo apt-get install build-essential libgmp3-dev make
 
 Steps:
-	- make
-	- make install
-	(might require administrator priveleges)
+- make
+- make install
+(might require administrator priveleges)
 
 Unistall:
-	- make uninstall
-	(might require administrator priveleges)
+- make uninstall
+(might require administrator priveleges)
 
 Known Bugs
 ----------
 
-Arbitrarily large values (on 32-bit systems: > 2^32, and 64-bit systems: > 2^64), will fail, due
+[FIXED] Arbitrarily large values (on 32-bit systems: > 2^32, and 64-bit systems: > 2^64), will fail, due
 to limitations of C fundimental types.
 	- At the moment, this problem is being addressed by using the GMP library. This will be
 	fixed next release (0.1.2).

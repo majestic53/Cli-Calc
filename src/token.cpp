@@ -134,31 +134,31 @@ token *token::add_child(token *child) {
 }
 
 /*
- * Converts a string to another type
+ * Converts a string to a float
  */
-template<class T>
-T token::convert_to(std::string &str) {
-	T out;
-	std::stringstream stream(str);
+bool token::convert_to_float(mpf_t &out, std::string &str) {
 
-	// return the conversion of a string into an object of type T
-	stream >> out;
-	return out;
+	// check if string is empty
+	if(str.empty())
+		return false;
+
+	// return conversion
+	mpf_init_set_str(out, str.c_str(), 10);
+	return true;
 }
 
 /*
- * Converts an integer to a string
+ * Converts a string to an integer
  */
-template<class T>
-void token::convert_to_string(T val, std::string &out) {
-	std::stringstream stream;
+bool token::convert_to_integer(mpz_t &out, std::string &str) {
 
-	// set precision
-	stream.precision(12);
+	// check if string is empty
+	if(str.empty())
+		return false;
 
-	// return the conversion of an object of type T into a string
-	stream << val;
-	out = stream.str();
+	// return conversion
+	mpz_init_set_str(out, str.c_str(), 10);
+	return true;
 }
 
 /*
@@ -180,11 +180,19 @@ token *token::get_child(unsigned int index) {
 bool token::negate(void) {
 
 	// negate the value if of type integer or float
-	if(type == INTEGER)
-		convert_to_string(-convert_to<long>(text), text);
-	else if(type == FLOAT)
-		convert_to_string(-convert_to<double>(text), text);
-	else
+	if(type == INTEGER) {
+		mpz_t value;
+		convert_to_integer(value, text);
+		mpz_neg(value, value);
+		convert_to_string(value, text);
+		mpz_clear(value);
+	} else if(type == FLOAT) {
+		mpf_t value;
+		convert_to_float(value, text);
+		mpf_neg(value, value);
+		convert_to_string(value, text);
+		mpf_clear(value);
+	} else
 		return false;
 	return true;
 }

@@ -1,11 +1,12 @@
 Instructions for compiling Cli Calc from source code
 
 Requirements (tested on):
+- libgmp 3 or newer
 - g++ 4.4.3 or newer
 - make 3.8 or newer
 
 For Debian:
-- sudo apt-get install build-essential make
+- sudo apt-get install build-essential libgmp3-dev make
 
 Steps:
 - make

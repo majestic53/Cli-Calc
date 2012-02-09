@@ -20,8 +20,11 @@
 
 #include <cmath>
 #include <csignal>
+#include <cstdint>
 #include <cstdlib>
 #include <ctime>
+#include <gmp.h>
+#include <gmpxx.h>
 #include <iostream>
 #include <set>
 #include "calc.hpp"
@@ -79,7 +82,7 @@ const std::string calc::NOTIFICATION("Type 'help' or 'about' for more informatio
 /*
  * Version number
  */
-const std::string calc::VERSION("Cli-Calculator 0.1.1");
+const std::string calc::VERSION("Cli-Calculator 0.1.2");
 
 /*
  * Warranty statement
@@ -150,6 +153,7 @@ int calc::check_input(std::string &input, sym_table &state) {
  */
 void calc::eval_constant(syn_tree &tree) {
 	token tok;
+	double value;
 	std::string output;
 
 	// verify token is of type constant
@@ -158,24 +162,22 @@ void calc::eval_constant(syn_tree &tree) {
 		throw exc_code::INVALID_CONSTANT;
 
 	// evaluate as exp
-	if(tok.get_text() == lexer::CONSTANT_OPER_DATA[lexer::E]) {
-		token::convert_to_string((double) exp(1), output);
-		tree.set_text(output);
-		tree.set_type(token::FLOAT);
+	if(tok.get_text() == lexer::CONSTANT_OPER_DATA[lexer::E])
+		value = exp(1);
 
 	// evaluate as pi
-	} else if(tok.get_text() == lexer::CONSTANT_OPER_DATA[lexer::PI]) {
-		token::convert_to_string((double) (std::atan(1.0) * 4.0), output);
-		tree.set_text(output);
-		tree.set_type(token::FLOAT);
+	else if(tok.get_text() == lexer::CONSTANT_OPER_DATA[lexer::PI])
+		value = std::atan(1.0) * 4.0;
 
 	// evaluate as a random number between 0.0 - 1.0
-	} else if(tok.get_text() == lexer::CONSTANT_OPER_DATA[lexer::RAND]) {
-		token::convert_to_string((double) (rand() / (double) RAND_MAX), output);
-		tree.set_text(output);
-		tree.set_type(token::FLOAT);
-	} else
+	else if(tok.get_text() == lexer::CONSTANT_OPER_DATA[lexer::RAND])
+		value = rand() / (double) RAND_MAX;
+
+	else
 		throw exc_code::INVALID_CONSTANT;
+	token::convert_to_string(value, output);
+	tree.set_text(output);
+	tree.set_type(token::FLOAT);
 }
 
 /*
@@ -282,200 +284,174 @@ void calc::eval_function(syn_tree &tree, sym_table &state) {
 	if(child.get_type() != token::INTEGER
 			&& child.get_type() != token::FLOAT)
 		throw exc_code::INVALID_FUNCTION;
+	tree.set_type(token::FLOAT);
 
 	// execute abs function on input
 	if(text == lexer::FUNCTION_OPER_DATA[lexer::ABS]) {
-		tree.set_type(child.get_type());
-		if(child.get_type() == token::INTEGER)
-			token::convert_to_string(std::abs(token::convert_to<long>(child.get_text())), output);
-		else;
-			token::convert_to_string(fabs(token::convert_to<double>(child.get_text())), output);
-		tree.set_text(output);
+		if(child.get_type() == token::INTEGER) {
+			tree.set_type(token::INTEGER);
+			mpz_t value;
+			token::convert_to_integer(value, child.get_text());
+			mpz_abs(value, value);
+			token::convert_to_string(value, output);
+			mpz_clear(value);
+		} else {
+			mpf_t value;
+			token::convert_to_float(value, child.get_text());
+			mpf_abs(value, value);
+			token::convert_to_string(value, output);
+			mpf_clear(value);
+		}
 
 	// execute arc cos function on input
 	} else if(text == lexer::FUNCTION_OPER_DATA[lexer::ACOS]) {
-		tree.set_type(token::FLOAT);
-		token::convert_to_string(acos(token::convert_to<double>(child.get_text())), output);
-		tree.set_text(output);
+		// TODO
 
 	// execute arc sin function on input
 	} else if(text == lexer::FUNCTION_OPER_DATA[lexer::ASIN]) {
-		tree.set_type(token::FLOAT);
-		token::convert_to_string(asin(token::convert_to<double>(child.get_text())), output);
-		tree.set_text(output);
+		// TODO
 
 	// execute arc tan function on input
 	} else if(text == lexer::FUNCTION_OPER_DATA[lexer::ATAN]) {
-		tree.set_type(token::FLOAT);
-		token::convert_to_string(atan(token::convert_to<double>(child.get_text())), output);
-		tree.set_text(output);
+		// TODO
 
 	// execute ceiling function on input
 	} else if(text == lexer::FUNCTION_OPER_DATA[lexer::CEILING]) {
-		tree.set_type(child.get_type());
-		if(child.get_type() == token::INTEGER)
-			token::convert_to_string(ceil(token::convert_to<long>(child.get_text())), output);
-		else
-			token::convert_to_string(ceil(token::convert_to<double>(child.get_text())), output);
-		tree.set_text(output);
+		if(child.get_type() != token::INTEGER) {
+			// TODO
+		} else {
+			tree.set_type(token::INTEGER);
+			output = child.get_text();
+		}
 
 	// execute cos function on input
 	} else if(text == lexer::FUNCTION_OPER_DATA[lexer::COS]) {
-		tree.set_type(token::FLOAT);
-		token::convert_to_string(cos(token::convert_to<double>(child.get_text())), output);
-		tree.set_text(output);
+		// TODO
 
 	// execute hyperbolic cos function on input
 	} else if(text == lexer::FUNCTION_OPER_DATA[lexer::COSH]) {
-		tree.set_type(token::FLOAT);
-		token::convert_to_string(cosh(token::convert_to<double>(child.get_text())), output);
-		tree.set_text(output);
+		// TODO
 
 	// execute factorial function on input
 	} else if(text == lexer::FUNCTION_OPER_DATA[lexer::FACT]) {
-		tree.set_type(token::INTEGER);
-
-		// check that operand is valid
-		if(child.get_type() != token::INTEGER)
+		if(child.get_type() == token::INTEGER) {
+			tree.set_type(token::INTEGER);
+			mpz_t value;
+			mpz_init(value);
+			uint64_t sec;
+			sec = token::convert_to<uint64_t>(child.get_text());
+			mpz_fac_ui(value, sec);
+			token::convert_to_string(value, output);
+			mpz_clear(value);
+		} else
 			throw exc_code::EXPECTING_INTEGER_OPERAND;
-		long start = token::convert_to<long>(child.get_text());
-
-		// check for positive value
-		if(start < 0)
-			throw exc_code::EXPECTING_POSITIVE_INTEGER_OPERAND;
-
-		// calculate factorial
-		if(start < 1)
-			token::convert_to_string((long) 1, output);
-		else {
-			long prod = 1;
-			for(long i = start; i > 1; --i)
-				prod *= i;
-			token::convert_to_string(prod, output);
-		}
-		tree.set_text(output);
 
 	// execute fibonacci function on input
 	} else if(text == lexer::FUNCTION_OPER_DATA[lexer::FIB]) {
-		tree.set_type(token::INTEGER);
-
-		// check that operand is valid
-		if(child.get_type() != token::INTEGER)
+		if(child.get_type() == token::INTEGER) {
+			tree.set_type(token::INTEGER);
+			tree.set_type(token::INTEGER);
+			mpz_t value;
+			mpz_init(value);
+			uint64_t sec;
+			sec = token::convert_to<uint64_t>(child.get_text());
+			mpz_fib_ui(value, sec);
+			token::convert_to_string(value, output);
+			mpz_clear(value);
+		} else
 			throw exc_code::EXPECTING_INTEGER_OPERAND;
-		long start = token::convert_to<long>(child.get_text());
-
-		// check for positive value
-		if(start < 0)
-			throw exc_code::EXPECTING_POSITIVE_INTEGER_OPERAND;
-
-		// calculate fibonacci value
-		if(start < 2)
-			token::convert_to_string(start, output);
-		else {
-			long *fib = new long[start + 1];
-			if(!fib)
-				throw exc_code::MEM_FAILURE;
-			fib[0] = 0;
-			fib[1] = 1;
-			for(long i = 2; i <= start; i++)
-				fib[i] = fib[i - 1] + fib[i - 2];
-			token::convert_to_string(fib[start], output);
-			delete[] fib;
-		}
-		tree.set_text(output);
 
 	// execute double cast function on input
 	} else if(text == lexer::FUNCTION_OPER_DATA[lexer::FLOAT]) {
-		tree.set_type(token::FLOAT);
-		token::convert_to_string(token::convert_to<double>(child.get_text()), output);
-		tree.set_text(output);
+		if(child.get_type() != token::FLOAT) {
+			// TODO
+		} else
+			output = child.get_text();
 
 	// execute floor function on input
 	} else if(text == lexer::FUNCTION_OPER_DATA[lexer::FLOOR]) {
-		tree.set_type(child.get_type());
-		if(child.get_type() == token::INTEGER)
-			token::convert_to_string(floor(token::convert_to<long>(child.get_text())), output);
-		else
-			token::convert_to_string(floor(token::convert_to<double>(child.get_text())), output);
-		tree.set_text(output);
+		if(child.get_type() != token::INTEGER) {
+			// TODO
+		} else {
+			tree.set_type(token::INTEGER);
+			output = child.get_text();
+		}
 
 	// execute integer cast function on input
 	} else if(text == lexer::FUNCTION_OPER_DATA[lexer::INT]) {
-		tree.set_type(token::INTEGER);
-		token::convert_to_string(token::convert_to<long>(child.get_text()), output);
-		tree.set_text(output);
+		if(child.get_type() != token::INTEGER) {
+			tree.set_type(token::INTEGER);
+			// TODO
+		} else {
+			tree.set_type(token::INTEGER);
+			output = child.get_text();
+		}
 
 	// execute natural log function on input
 	} else if(text == lexer::FUNCTION_OPER_DATA[lexer::LN]) {
-		tree.set_type(token::FLOAT);
-		token::convert_to_string(log(token::convert_to<double>(child.get_text())), output);
-		tree.set_text(output);
-
+		// TODO
 
 	// execute log(base 2) function on input
 	} else if(text == lexer::FUNCTION_OPER_DATA[lexer::LOG2]) {
-		tree.set_type(token::FLOAT);
-		token::convert_to_string(log2(token::convert_to<double>(child.get_text())), output);
-		tree.set_text(output);
+		// TODO
 
 	// execute log(base 10) function on input
 	} else if(text == lexer::FUNCTION_OPER_DATA[lexer::LOG10]) {
-		tree.set_type(token::FLOAT);
-		token::convert_to_string(log10(token::convert_to<double>(child.get_text())), output);
-		tree.set_text(output);
+		// TODO
 
 	// execute round function on input
 	} else if(text == lexer::FUNCTION_OPER_DATA[lexer::ROUND]) {
-		tree.set_type(child.get_type());
-		if(child.get_type() == token::INTEGER)
-			token::convert_to_string(round(token::convert_to<long>(child.get_text())), output);
-		else
-			token::convert_to_string(round(token::convert_to<double>(child.get_text())), output);
-		tree.set_text(output);
+		if(child.get_type() != token::INTEGER) {
+			// TODO
+		} else {
+			tree.set_type(token::INTEGER);
+			output = child.get_text();
+		}
 
 	// execute sin function on input
 	} else if(text == lexer::FUNCTION_OPER_DATA[lexer::SIN]) {
-		tree.set_type(token::FLOAT);
-		token::convert_to_string(sin(token::convert_to<double>(child.get_text())), output);
-		tree.set_text(output);
+		// TODO
 
 	// execute hyperbolic sin function on input
 	} else if(text == lexer::FUNCTION_OPER_DATA[lexer::SINH]) {
-		tree.set_type(token::FLOAT);
-		token::convert_to_string(sinh(token::convert_to<double>(child.get_text())), output);
-		tree.set_text(output);
+		// TODO
 
 	// execute square function on input
 	} else if(text == lexer::FUNCTION_OPER_DATA[lexer::SQR]) {
-		tree.set_type(token::FLOAT);
 		if(child.get_type() == token::INTEGER) {
-			long value = token::convert_to<long>(child.get_text());
-			token::convert_to_string(value * value, output);
+			tree.set_type(token::INTEGER);
+			mpz_t value;
+			token::convert_to_integer(value, child.get_text());
+			mpz_mul(value, value, value);
+			token::convert_to_string(value, output);
+			mpz_clear(value);
 		} else {
-			double value = token::convert_to<double>(child.get_text());
-			token::convert_to_string(value * value, output);
+			mpf_t value;
+			token::convert_to_float(value, child.get_text());
+			mpf_mul(value, value, value);
+			token::convert_to_string(value, output);
+			mpf_clear(value);
 		}
-		tree.set_text(output);
 
 	// execute sqrt function on input
 	} else if(text == lexer::FUNCTION_OPER_DATA[lexer::SQRT]) {
-		tree.set_type(token::FLOAT);
-		token::convert_to_string(sqrt(token::convert_to<double>(child.get_text())), output);
-		tree.set_text(output);
+		mpf_t value;
+		token::convert_to_float(value, child.get_text());
+		mpf_sqrt(value, value);
+		token::convert_to_string(value, output);
+		mpf_clear(value);
 
 	// execute tan function on input
 	} else if(text == lexer::FUNCTION_OPER_DATA[lexer::TAN]) {
-		tree.set_type(token::FLOAT);
-		token::convert_to_string(tan(token::convert_to<double>(child.get_text())), output);
-		tree.set_text(output);
+		// TODO
 
 	// execute hyperbolic tan function on input
 	} else if(text == lexer::FUNCTION_OPER_DATA[lexer::TANH]) {
-		tree.set_type(token::FLOAT);
-		token::convert_to_string(tanh(token::convert_to<double>(child.get_text())), output);
-		tree.set_text(output);
+		// TODO
+
 	} else
 		throw exc_code::INVALID_FUNCTION;
+	tree.set_text(output);
 }
 
 /*
@@ -500,12 +476,8 @@ void calc::eval_operator(syn_tree &tree, token &accum, sym_table &state) {
 
 	// check to make sure second is a valid type
 	if(second.get_type() != token::INTEGER
-			&& second.get_type() != token::FLOAT) {
-		std::string str;
-		second.to_string(str);
-		std::cout << str << std::endl;
+			&& second.get_type() != token::FLOAT)
 		throw exc_code::INVALID_OPERAND;
-	}
 
 	// determine type
 	type = token::INTEGER;
@@ -519,90 +491,135 @@ void calc::eval_operator(syn_tree &tree, token &accum, sym_table &state) {
 		// evaluate as a binary operator
 		case token::BINARY_OPER:
 
-			// evaluate as a binary and
-			if(oper.get_text() == lexer::BINARY_OPER_DATA[lexer::AND]) {
-				if(type != token::INTEGER)
-					throw exc_code::EXPECTING_INTEGER_OPERAND;
-				token::convert_to_string((long) token::convert_to<long>(accum.get_text()) & token::convert_to<long>(second.get_text()), output);
+			// check for correct type
+			if(type == token::INTEGER) {
+				mpz_t value, sec;
+				token::convert_to_integer(value, accum.get_text());
+				token::convert_to_integer(sec, second.get_text());
 
-			// evaluate as a binary or
-			} else if(oper.get_text() == lexer::BINARY_OPER_DATA[lexer::OR]) {
-				if(type != token::INTEGER)
-					throw exc_code::EXPECTING_INTEGER_OPERAND;
-				token::convert_to_string((long) token::convert_to<long>(accum.get_text()) | token::convert_to<long>(second.get_text()), output);
+				// evaluate as a binary and
+				if(oper.get_text() == lexer::BINARY_OPER_DATA[lexer::AND])
+					mpz_and(value, value, sec);
 
-			// evaluate as a binary xor
-			} else if(oper.get_text() == lexer::BINARY_OPER_DATA[lexer::XOR]) {
-				if(type != token::INTEGER)
-					throw exc_code::EXPECTING_INTEGER_OPERAND;
-				token::convert_to_string((long) token::convert_to<long>(accum.get_text()) ^ token::convert_to<long>(second.get_text()), output);
+				// evaluate as a binary or
+				else if(oper.get_text() == lexer::BINARY_OPER_DATA[lexer::OR])
+					mpz_ior(value, value, sec);
 
+				// evaluate as a binary xor
+				else if(oper.get_text() == lexer::BINARY_OPER_DATA[lexer::XOR])
+					mpz_xor(value, value, sec);
+
+				else
+					throw exc_code::INVALID_BINARY_OPERATOR;
+				token::convert_to_string(value, output);
+				mpz_clear(value);
+				mpz_clear(sec);
 			} else
-				throw exc_code::INVALID_BINARY_OPERATOR;
+				throw exc_code::EXPECTING_INTEGER_OPERAND;
 			break;
 
 		// evaluate as a logical operator
 		case token::LOGICAL_OPER:
 
-			// evaluate as a logical left shift
-			if(oper.get_text() == lexer::LOGICAL_OPER_DATA[lexer::LEFT_SHIFT]) {
-				if(type != token::INTEGER)
-					throw exc_code::EXPECTING_INTEGER_OPERAND;
-				token::convert_to_string((long) token::convert_to<long>(accum.get_text()) << token::convert_to<long>(second.get_text()), output);
+			// check for correct type
+			if(type == token::INTEGER) {
+				mpz_t value;
+				uint64_t sec;
+				token::convert_to_integer(value, accum.get_text());
+				sec = token::convert_to<uint64_t>(second.get_text());
 
-			// evaluate as a logical right shift
-			} else if(oper.get_text() == lexer::LOGICAL_OPER_DATA[lexer::RIGHT_SHIFT]) {
-				if(type != token::INTEGER)
-					throw exc_code::EXPECTING_INTEGER_OPERAND;
-				token::convert_to_string((long) token::convert_to<long>(accum.get_text()) >> token::convert_to<long>(second.get_text()), output);
+				// evaluate as a logical left shift
+				if(oper.get_text() == lexer::LOGICAL_OPER_DATA[lexer::LEFT_SHIFT])
+					mpz_mul_2exp(value, value, sec);
 
+				// evaluate as a logical right shift
+				else if(oper.get_text() == lexer::LOGICAL_OPER_DATA[lexer::RIGHT_SHIFT]) {
+					mpz_tdiv_q_2exp(value, value, sec);
+
+				} else
+					throw exc_code::INVALID_LOGICAL_OPERATOR;
+				token::convert_to_string(value, output);
+				mpz_clear(value);
 			} else
-				throw exc_code::INVALID_LOGICAL_OPERATOR;
+				throw exc_code::EXPECTING_INTEGER_OPERAND;
 			break;
 
 		// evaluate as an arithmetic operator
 		case token::OPER:
 
-			// evaluate as a arithmetic plus
-			if(oper.get_text() == lexer::OPER_DATA[lexer::PLUS]) {
-				if(type == token::INTEGER)
-					token::convert_to_string((long) token::convert_to<long>(accum.get_text()) + token::convert_to<long>(second.get_text()), output);
-				else
-					token::convert_to_string((double) token::convert_to<double>(accum.get_text()) + token::convert_to<double>(second.get_text()), output);
+			// evaluate integer values
+			if(type == token::INTEGER) {
+				mpz_t value, sec;
+				token::convert_to_integer(value, accum.get_text());
+				token::convert_to_integer(sec, second.get_text());
 
-			// evaluate as a arithmetic minus
-			} else if(oper.get_text() == lexer::OPER_DATA[lexer::MINUS]) {
-				if(type == token::INTEGER)
-					token::convert_to_string((long) token::convert_to<long>(accum.get_text()) - token::convert_to<long>(second.get_text()), output);
-				else
-					token::convert_to_string((double) token::convert_to<double>(accum.get_text()) - token::convert_to<double>(second.get_text()), output);
+				// evaluate as a arithmetic plus
+				if(oper.get_text() == lexer::OPER_DATA[lexer::PLUS])
+					mpz_add(value, value, sec);
 
-			// evaluate as a arithmetic multiply
-			} else if(oper.get_text() == lexer::OPER_DATA[lexer::MULTI]) {
-				if(type == token::INTEGER)
-					token::convert_to_string((long) token::convert_to<long>(accum.get_text()) * token::convert_to<long>(second.get_text()), output);
-				else
-					token::convert_to_string((double) token::convert_to<double>(accum.get_text()) * token::convert_to<double>(second.get_text()), output);
+				// evaluate as a arithmetic minus
+				else if(oper.get_text() == lexer::OPER_DATA[lexer::MINUS])
+					mpz_sub(value, value, sec);
 
-			// evaluate as a arithmetic divide
-			} else if(oper.get_text() == lexer::OPER_DATA[lexer::DIV]) {
-				if(type == token::INTEGER)
-					token::convert_to_string((long) token::convert_to<long>(accum.get_text()) / token::convert_to<long>(second.get_text()), output);
-				else
-					token::convert_to_string((double) token::convert_to<double>(accum.get_text()) / token::convert_to<double>(second.get_text()), output);
+				// evaluate as a arithmetic multiply
+				else if(oper.get_text() == lexer::OPER_DATA[lexer::MULTI])
+					mpz_mul(value, value, sec);
 
-			// evaluate as a arithmetic modulo
-			} else if(oper.get_text() == lexer::OPER_DATA[lexer::MOD]) {
-				if(type != token::INTEGER)
+				// evaluate as a arithmetic divide
+				else if(oper.get_text() == lexer::OPER_DATA[lexer::DIV])
+					mpz_div(value, value, sec);
+
+				// evaluate as a arithmetic modulo
+				else if(oper.get_text() == lexer::OPER_DATA[lexer::MOD])
+					mpz_mod(value, value, sec);
+
+				// evaluate as a arithmetic power
+				else if(oper.get_text() == lexer::OPER_DATA[lexer::POW]) {
+					uint64_t exp;
+					token::convert_to_integer(value, accum.get_text());
+					exp = token::convert_to<uint64_t>(second.get_text());
+					mpz_pow_ui(value, value, exp);
+				}
+				token::convert_to_string(value, output);
+				mpz_clear(value);
+				mpz_clear(sec);
+
+			// evauate floating-point values
+			} else if(type == token::FLOAT) {
+				mpf_t value, sec;
+				token::convert_to_float(value, accum.get_text());
+				token::convert_to_float(sec, second.get_text());
+
+				// evaluate as a arithmetic plus
+				if(oper.get_text() == lexer::OPER_DATA[lexer::PLUS])
+					mpf_add(value, value, sec);
+
+				// evaluate as a arithmetic minus
+				else if(oper.get_text() == lexer::OPER_DATA[lexer::MINUS])
+					mpf_sub(value, value, sec);
+
+				// evaluate as a arithmetic multiply
+				else if(oper.get_text() == lexer::OPER_DATA[lexer::MULTI])
+					mpf_mul(value, value, sec);
+
+				// evaluate as a arithmetic divide
+				else if(oper.get_text() == lexer::OPER_DATA[lexer::DIV])
+					mpf_div(value, value, sec);
+
+				// evaluate as a arithmetic modulo
+				else if(oper.get_text() == lexer::OPER_DATA[lexer::MOD])
 					throw exc_code::EXPECTING_INTEGER_OPERAND;
-				token::convert_to_string((long) token::convert_to<long>(accum.get_text()) % token::convert_to<long>(second.get_text()), output);
 
-			// evaluate as a arithmetic power
-			} else if(oper.get_text() == lexer::OPER_DATA[lexer::POW]) {
-				if(type == token::INTEGER)
-					token::convert_to_string((long) pow(token::convert_to<long>(accum.get_text()), token::convert_to<long>(second.get_text())), output);
-				else
-					token::convert_to_string((double) pow(token::convert_to<double>(accum.get_text()), token::convert_to<double>(second.get_text())), output);
+				// evaluate as a arithmetic power
+				else if(oper.get_text() == lexer::OPER_DATA[lexer::POW]) {
+					uint64_t exp;
+					token::convert_to_float(value, accum.get_text());
+					exp = token::convert_to<uint64_t>(second.get_text());
+					mpf_pow_ui(value, value, exp);
+				}
+				token::convert_to_string(value, output);
+				mpf_clear(value);
+				mpf_clear(sec);
 			} else
 				throw exc_code::INVALID_ARITHMETIC_OPERATOR;
 			break;
