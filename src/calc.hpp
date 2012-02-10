@@ -22,6 +22,8 @@
 #define CALC_HPP_
 
 #include <string>
+#include <gmp.h>
+#include <mpfr.h>
 #include <vector>
 #include "exc_code.hpp"
 #include "parser.hpp"
@@ -31,11 +33,6 @@
 
 class calc {
 public:
-
-	/*
-	 * Prompt
-	 */
-	static const std::string PROMPT;
 
 	/*
 	 * Copyright statement
@@ -52,6 +49,11 @@ public:
 	 * Help information notification
 	 */
 	static const std::string NOTIFICATION;
+
+	/*
+	 * Prompt
+	 */
+	static const std::string PROMPT;
 
 	/*
 	 * Version number
@@ -81,6 +83,11 @@ public:
 	 * Checks input for commands prior to evaluation
 	 */
 	static int check_input(std::string &input, sym_table &state);
+
+	/*
+	 * Convert mpfr_t to string
+	 */
+	static bool convert_to_string(mpfr_t &value, const unsigned int precision, std::string &output);
 
 	/*
 	 * Evaluate a constant

@@ -23,17 +23,10 @@
 #include <cstdint>
 #include <cstdlib>
 #include <ctime>
-#include <gmp.h>
-#include <gmpxx.h>
 #include <iostream>
 #include <set>
 #include "calc.hpp"
 #include "lexer.hpp"
-
-/*
- * Prompt
- */
-const std::string calc::PROMPT(">> ");
 
 /*
  * Copyright statement
@@ -78,6 +71,11 @@ const std::string calc::HELP_INFO_DATA[calc::HELP_INFO_DATA_SIZE] = {
  * Help information notification
  */
 const std::string calc::NOTIFICATION("Type 'help' or 'about' for more information");
+
+/*
+ * Prompt
+ */
+const std::string calc::PROMPT(">> ");
 
 /*
  * Version number
@@ -149,12 +147,38 @@ int calc::check_input(std::string &input, sym_table &state) {
 }
 
 /*
+ * Convert mpfr_t to string
+ */
+bool calc::convert_to_string(mpfr_t &value, const unsigned int precision, std::string &output) {
+	char *tmp = NULL;
+	mp_exp_t dec_pos;
+
+	// convert to a string
+	tmp = mpfr_get_str(tmp, &dec_pos, 10, precision, value, GMP_RNDN);
+	if(!tmp)
+		return false;
+	else {
+		output.assign(tmp);
+		if(dec_pos <= 0) {
+			if(output.at(0) == '-')
+				output.insert(1, "0.");
+			else
+				output.insert(0, "0.");
+		} else if((unsigned int) dec_pos < output.size())
+			output.insert(dec_pos, ".");
+	}
+	mpfr_free_str(tmp);
+	return true;
+}
+
+/*
  * Evaluate a constant
  */
 void calc::eval_constant(syn_tree &tree) {
 	token tok;
-	double value;
+	mpfr_t value;
 	std::string output;
+	mpfr_init(value);
 
 	// verify token is of type constant
 	tree.get_contents(tok);
@@ -162,22 +186,39 @@ void calc::eval_constant(syn_tree &tree) {
 		throw exc_code::INVALID_CONSTANT;
 
 	// evaluate as exp
-	if(tok.get_text() == lexer::CONSTANT_OPER_DATA[lexer::E])
-		value = exp(1);
+	if(tok.get_text() == lexer::CONSTANT_OPER_DATA[lexer::E]) {
+		mpfr_t one;
+		mpfr_init_set_ui(one, 1, GMP_RNDN);
+		mpfr_exp(value, one, GMP_RNDN);
+		mpfr_clear(one);
+	}
 
 	// evaluate as pi
 	else if(tok.get_text() == lexer::CONSTANT_OPER_DATA[lexer::PI])
-		value = std::atan(1.0) * 4.0;
+		mpfr_const_pi(value, GMP_RNDN);
 
 	// evaluate as a random number between 0.0 - 1.0
-	else if(tok.get_text() == lexer::CONSTANT_OPER_DATA[lexer::RAND])
-		value = rand() / (double) RAND_MAX;
+	else if(tok.get_text() == lexer::CONSTANT_OPER_DATA[lexer::RAND]) {
+		gmp_randstate_t rand_st;
+		gmp_randinit_mt(rand_st);
+		gmp_randseed_ui(rand_st, time(NULL));
+		mpfr_urandomb(value, rand_st);
+		gmp_randclear(rand_st);
+	}
 
 	else
 		throw exc_code::INVALID_CONSTANT;
-	token::convert_to_string(value, output);
+
+	// convert value to string
+	if(!convert_to_string(value, 0, output))
+		output = "0.0";
+
 	tree.set_text(output);
 	tree.set_type(token::FLOAT);
+
+	// cleanup
+	mpfr_clear(value);
+	mpfr_free_cache();
 }
 
 /*
@@ -305,20 +346,56 @@ void calc::eval_function(syn_tree &tree, sym_table &state) {
 
 	// execute arc cos function on input
 	} else if(text == lexer::FUNCTION_OPER_DATA[lexer::ACOS]) {
-		// TODO
+		mpfr_t value, input;
+		mpfr_init(value);
+		mpfr_init_set_str(input, child.get_text().c_str(), 10, GMP_RNDN);
+		mpfr_acos(value, input, GMP_RNDN);
+
+		// convert value to string
+		if(!convert_to_string(value, 0, output))
+			output = "0.0";
+		mpfr_clear(value);
+		mpfr_clear(input);
 
 	// execute arc sin function on input
 	} else if(text == lexer::FUNCTION_OPER_DATA[lexer::ASIN]) {
-		// TODO
+		mpfr_t value, input;
+		mpfr_init(value);
+		mpfr_init_set_str(input, child.get_text().c_str(), 10, GMP_RNDN);
+		mpfr_asin(value, input, GMP_RNDN);
+
+		// convert value to string
+		if(!convert_to_string(value, 0, output))
+			output = "0.0";
+		mpfr_clear(value);
+		mpfr_clear(input);
 
 	// execute arc tan function on input
 	} else if(text == lexer::FUNCTION_OPER_DATA[lexer::ATAN]) {
-		// TODO
+		mpfr_t value, input;
+		mpfr_init(value);
+		mpfr_init_set_str(input, child.get_text().c_str(), 10, GMP_RNDN);
+		mpfr_atan(value, input, GMP_RNDN);
+
+		// convert value to string
+		if(!convert_to_string(value, 0, output))
+			output = "0.0";
+		mpfr_clear(value);
+		mpfr_clear(input);
 
 	// execute ceiling function on input
 	} else if(text == lexer::FUNCTION_OPER_DATA[lexer::CEILING]) {
 		if(child.get_type() != token::INTEGER) {
-			// TODO
+			mpz_t i_val;
+			mpf_t f_val;
+			mpz_init(i_val);
+			token::convert_to_float(f_val, child.get_text());
+			mpz_set_f(i_val, f_val);
+			mpf_set_z(f_val, i_val);
+			mpf_add_ui(f_val, f_val, 1);
+			token::convert_to_string(f_val, output);
+			mpz_clear(i_val);
+			mpf_clear(f_val);
 		} else {
 			tree.set_type(token::INTEGER);
 			output = child.get_text();
@@ -326,11 +403,29 @@ void calc::eval_function(syn_tree &tree, sym_table &state) {
 
 	// execute cos function on input
 	} else if(text == lexer::FUNCTION_OPER_DATA[lexer::COS]) {
-		// TODO
+		mpfr_t value, input;
+		mpfr_init(value);
+		mpfr_init_set_str(input, child.get_text().c_str(), 10, GMP_RNDN);
+		mpfr_cos(value, input, GMP_RNDN);
+
+		// convert value to string
+		if(!convert_to_string(value, 0, output))
+			output = "0.0";
+		mpfr_clear(value);
+		mpfr_clear(input);
 
 	// execute hyperbolic cos function on input
 	} else if(text == lexer::FUNCTION_OPER_DATA[lexer::COSH]) {
-		// TODO
+		mpfr_t value, input;
+		mpfr_init(value);
+		mpfr_init_set_str(input, child.get_text().c_str(), 10, GMP_RNDN);
+		mpfr_cosh(value, input, GMP_RNDN);
+
+		// convert value to string
+		if(!convert_to_string(value, 0, output))
+			output = "0.0";
+		mpfr_clear(value);
+		mpfr_clear(input);
 
 	// execute factorial function on input
 	} else if(text == lexer::FUNCTION_OPER_DATA[lexer::FACT]) {
@@ -350,7 +445,6 @@ void calc::eval_function(syn_tree &tree, sym_table &state) {
 	} else if(text == lexer::FUNCTION_OPER_DATA[lexer::FIB]) {
 		if(child.get_type() == token::INTEGER) {
 			tree.set_type(token::INTEGER);
-			tree.set_type(token::INTEGER);
 			mpz_t value;
 			mpz_init(value);
 			uint64_t sec;
@@ -363,15 +457,20 @@ void calc::eval_function(syn_tree &tree, sym_table &state) {
 
 	// execute double cast function on input
 	} else if(text == lexer::FUNCTION_OPER_DATA[lexer::FLOAT]) {
-		if(child.get_type() != token::FLOAT) {
-			// TODO
-		} else
-			output = child.get_text();
+		output = child.get_text();
 
 	// execute floor function on input
 	} else if(text == lexer::FUNCTION_OPER_DATA[lexer::FLOOR]) {
 		if(child.get_type() != token::INTEGER) {
-			// TODO
+			mpz_t i_val;
+			mpf_t f_val;
+			mpz_init(i_val);
+			token::convert_to_float(f_val, child.get_text());
+			mpz_set_f(i_val, f_val);
+			mpf_set_z(f_val, i_val);
+			token::convert_to_string(f_val, output);
+			mpz_clear(i_val);
+			mpf_clear(f_val);
 		} else {
 			tree.set_type(token::INTEGER);
 			output = child.get_text();
@@ -381,7 +480,14 @@ void calc::eval_function(syn_tree &tree, sym_table &state) {
 	} else if(text == lexer::FUNCTION_OPER_DATA[lexer::INT]) {
 		if(child.get_type() != token::INTEGER) {
 			tree.set_type(token::INTEGER);
-			// TODO
+			mpz_t i_val;
+			mpf_t f_val;
+			mpz_init(i_val);
+			token::convert_to_float(f_val, child.get_text());
+			mpz_set_f(i_val, f_val);
+			token::convert_to_string(i_val, output);
+			mpz_clear(i_val);
+			mpf_clear(f_val);
 		} else {
 			tree.set_type(token::INTEGER);
 			output = child.get_text();
@@ -389,20 +495,60 @@ void calc::eval_function(syn_tree &tree, sym_table &state) {
 
 	// execute natural log function on input
 	} else if(text == lexer::FUNCTION_OPER_DATA[lexer::LN]) {
-		// TODO
+		mpfr_t value, input;
+		mpfr_init(value);
+		mpfr_init_set_str(input, child.get_text().c_str(), 10, GMP_RNDN);
+		mpfr_log(value, input, GMP_RNDN);
+
+		// convert value to string
+		if(!convert_to_string(value, 0, output))
+			output = "0.0";
+		mpfr_clear(value);
+		mpfr_clear(input);
 
 	// execute log(base 2) function on input
 	} else if(text == lexer::FUNCTION_OPER_DATA[lexer::LOG2]) {
-		// TODO
+		mpfr_t value, input;
+		mpfr_init(value);
+		mpfr_init_set_str(input, child.get_text().c_str(), 10, GMP_RNDN);
+		mpfr_log2(value, input, GMP_RNDN);
+
+		// convert value to string
+		if(!convert_to_string(value, 0, output))
+			output = "0.0";
+		mpfr_clear(value);
+		mpfr_clear(input);
 
 	// execute log(base 10) function on input
 	} else if(text == lexer::FUNCTION_OPER_DATA[lexer::LOG10]) {
-		// TODO
+		mpfr_t value, input;
+		mpfr_init(value);
+		mpfr_init_set_str(input, child.get_text().c_str(), 10, GMP_RNDN);
+		mpfr_log10(value, input, GMP_RNDN);
+
+		// convert value to string
+		if(!convert_to_string(value, 0, output))
+			output = "0.0";
+		mpfr_clear(value);
+		mpfr_clear(input);
 
 	// execute round function on input
 	} else if(text == lexer::FUNCTION_OPER_DATA[lexer::ROUND]) {
 		if(child.get_type() != token::INTEGER) {
-			// TODO
+			mpz_t floor;
+			mpf_t f_diff, f_floor;
+			mpz_init(floor);
+			mpf_init(f_floor);
+			token::convert_to_float(f_diff, child.get_text());
+			mpz_set_f(floor, f_diff);
+			mpf_set_z(f_floor, floor);
+			mpf_sub(f_diff, f_diff, f_floor);
+			if(mpf_cmp_d(f_diff, 0.5) >= 0)
+				mpf_add_ui(f_floor, f_floor, 1);
+			token::convert_to_string(f_floor, output);
+			mpz_clear(floor);
+			mpf_clear(f_diff);
+			mpf_clear(f_floor);
 		} else {
 			tree.set_type(token::INTEGER);
 			output = child.get_text();
@@ -410,11 +556,29 @@ void calc::eval_function(syn_tree &tree, sym_table &state) {
 
 	// execute sin function on input
 	} else if(text == lexer::FUNCTION_OPER_DATA[lexer::SIN]) {
-		// TODO
+		mpfr_t value, input;
+		mpfr_init(value);
+		mpfr_init_set_str(input, child.get_text().c_str(), 10, GMP_RNDN);
+		mpfr_sin(value, input, GMP_RNDN);
+
+		// convert value to string
+		if(!convert_to_string(value, 0, output))
+			output = "0.0";
+		mpfr_clear(value);
+		mpfr_clear(input);
 
 	// execute hyperbolic sin function on input
 	} else if(text == lexer::FUNCTION_OPER_DATA[lexer::SINH]) {
-		// TODO
+		mpfr_t value, input;
+		mpfr_init(value);
+		mpfr_init_set_str(input, child.get_text().c_str(), 10, GMP_RNDN);
+		mpfr_sinh(value, input, GMP_RNDN);
+
+		// convert value to string
+		if(!convert_to_string(value, 0, output))
+			output = "0.0";
+		mpfr_clear(value);
+		mpfr_clear(input);
 
 	// execute square function on input
 	} else if(text == lexer::FUNCTION_OPER_DATA[lexer::SQR]) {
@@ -443,11 +607,29 @@ void calc::eval_function(syn_tree &tree, sym_table &state) {
 
 	// execute tan function on input
 	} else if(text == lexer::FUNCTION_OPER_DATA[lexer::TAN]) {
-		// TODO
+		mpfr_t value, input;
+		mpfr_init(value);
+		mpfr_init_set_str(input, child.get_text().c_str(), 10, GMP_RNDN);
+		mpfr_tan(value, input, GMP_RNDN);
+
+		// convert value to string
+		if(!convert_to_string(value, 0, output))
+			output = "0.0";
+		mpfr_clear(value);
+		mpfr_clear(input);
 
 	// execute hyperbolic tan function on input
 	} else if(text == lexer::FUNCTION_OPER_DATA[lexer::TANH]) {
-		// TODO
+		mpfr_t value, input;
+		mpfr_init(value);
+		mpfr_init_set_str(input, child.get_text().c_str(), 10, GMP_RNDN);
+		mpfr_tanh(value, input, GMP_RNDN);
+
+		// convert value to string
+		if(!convert_to_string(value, 0, output))
+			output = "0.0";
+		mpfr_clear(value);
+		mpfr_clear(input);
 
 	} else
 		throw exc_code::INVALID_FUNCTION;

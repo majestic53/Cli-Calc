@@ -2,7 +2,7 @@ Cli Calc (cli-calc)
 Copyright(C) 2012 David Jolly <majestic53@gmail.com>
 
 Version 0.1.2
-	-Switched to libgmp for arbitrarily large value input
+	-Switched to libgmp/libmpfr for arbitrarily large value input
 
 Version 0.1.1
 	-Added log2 (log-base-2) function

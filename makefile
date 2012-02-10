@@ -27,7 +27,7 @@ uninstall:
 	rmdir $(DOC)
 
 calc: build $(SRC)$(MAIN).cpp $(SRC)$(MAIN).hpp
-	$(CC) -std=c++0x -lm -lgmp -lgmpxx -o $(APP) $(SRC)$(MAIN).cpp $(SRC)exc_code.o $(SRC)lexer.o $(SRC)parser.o $(SRC)pb_buffer.o $(SRC)sym_table.o $(SRC)syn_tree.o $(SRC)token.o
+	$(CC) -std=c++0x -lm -lgmp -lgmpxx -lmpfr -o $(APP) $(SRC)$(MAIN).cpp $(SRC)exc_code.o $(SRC)lexer.o $(SRC)parser.o $(SRC)pb_buffer.o $(SRC)sym_table.o $(SRC)syn_tree.o $(SRC)token.o
 
 exc_code.o: $(SRC)exc_code.cpp $(SRC)exc_code.hpp
 	$(CC) -std=c++0x -c $(SRC)exc_code.cpp -o $(SRC)exc_code.o

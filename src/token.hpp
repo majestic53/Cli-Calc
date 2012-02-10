@@ -23,7 +23,7 @@
 
 #include <cstdint>
 #include <gmp.h>
-#include <gmpxx.h>
+#include <sstream>
 #include <string>
 #include <vector>
 

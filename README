@@ -27,21 +27,22 @@ Installation
 Instructions for compiling Cli Calc from source code
 
 Requirements (tested on):
-- libgmp 3 or newer
-- g++ 4.4.3 or newer
-- make 3.8 or newer
+	- libmpfr 3 or newer
+	- libgmp 3 or newer
+	- g++ 4.4.3 or newer
+	- make 3.8 or newer
 
 For Debian:
-- sudo apt-get install build-essential libgmp3-dev make
+	- sudo apt-get install build-essential libgmp3-dev libmpfr-dev make
 
-Steps:
-- make
-- make install
-(might require administrator priveleges)
+Install:
+	- make
+	- make install
+	(might require administrator privileges)
 
-Unistall:
-- make uninstall
-(might require administrator priveleges)
+Uninstall:
+	- make uninstall
+	(might require administrator privileges)
 
 Known Bugs
 ----------
